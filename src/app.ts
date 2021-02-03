@@ -1,6 +1,12 @@
-import './style.css';
+import './css/styles.css';
+import './css/bootstrap.css';
 
-const numberB : number = 2;
-const form : HTMLFormElement | null = document.querySelector('form');
+import template from './html/template.html'
 
-console.log(form);
+const body = document.querySelector('body');
+
+if(body){
+  body.innerHTML = template;
+}
+
+
