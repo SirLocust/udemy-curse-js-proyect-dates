@@ -9,6 +9,7 @@ interface Patient{
   date: string;
   time: string;
   symptom: string;
+  id: string;
 }
 
 
@@ -20,7 +21,10 @@ if(body){
   body.innerHTML = template;
 }
 
+
+
 let patients: Patient[] = [];
+let isPatientEdit: Patient | null = null;
 const form =  document.querySelector('form') as HTMLFormElement;
 const inputPetName = document.getElementById('mascota') as HTMLInputElement;
 const inputPetOwener = document.getElementById('propietario') as HTMLInputElement;
@@ -31,7 +35,10 @@ const inputSymptom = document.getElementById('sintomas') as HTMLTextAreaElement;
 const sumitButton = document.querySelector('form button') as HTMLButtonElement;
 const listDates = document.querySelector('ul') as HTMLUListElement;
 
-
+const generaterID = (petName:string,owener:string,time:string):string =>{
+  
+  return `${petName}${inputPetOwener}${time}`
+}
 
 const isFormFill = (): boolean => {
 
@@ -54,20 +61,34 @@ const isFormFill = (): boolean => {
 sumitButton.addEventListener('click' ,(event : Event) => {
   event.preventDefault();
   
-  
-  let dataPatient = {
+  let newid = generaterID(inputPetName.value,inputPetOwener.value,inputTime.value)
+
+  let dataPatient:Patient = {
     name: inputPetName.value,
     owener: inputPetOwener.value,
     phone: inputPhoneNumber.value,
     date: inputDate.value,
     time: inputTime.value,
-    symptom: inputSymptom.value
+    symptom: inputSymptom.value,
+    id: newid,
   }
 
   if(!isFormFill()){
     return
   }
-  patients.push(dataPatient);
+  if(isPatientEdit){
+    patients.forEach((element,index) => {
+      if(element.id === isPatientEdit?.id){
+        dataPatient.id = isPatientEdit.id
+        patients[index] = dataPatient;
+        isPatientEdit = null;
+      }
+    });
+  }
+  else{
+
+    patients.push(dataPatient);
+  }
   form.reset();
   printDatesHtml();
   console.log(patients)
@@ -84,7 +105,7 @@ form.addEventListener('change', () => {
 })
 
 const printDatesHtml = ():void =>{
-  
+  listDates.innerHTML = '';
   patients.forEach( (patient: Patient) => {
     let liElement = document.createElement('li');
     let html = `
@@ -108,8 +129,8 @@ const printDatesHtml = ():void =>{
       <strong>Sintomas</strong><span>${patient.symptom}</span>
     </div>
     <div>
-      <button type="button" class="btn btn-outline-primary">Eliminar</button>
-      <button type="button" class="btn btn-outline-primary">Editar</button>
+      <button type="button" class="btn btn-outline-primary" data-type="delete">Eliminar</button>
+      <button type="button" class="btn btn-outline-primary" data-type="edit" data-id="${patient.id}">Editar</button>
   
     </div>
   </div>
@@ -120,6 +141,41 @@ const printDatesHtml = ():void =>{
   })
   
 }
+
+listDates.addEventListener('click', (event: MouseEvent)=> {
+  let eventHtml = event.target as HTMLElement
+  if(eventHtml.getAttribute('data-type') === 'edit'){
+    let id = eventHtml.getAttribute('data-id');
+    let appointment = findDate(id);
+    if(!appointment){
+      return;
+    }
+    isPatientEdit = appointment
+    editDate(appointment);
+    
+  }
+})
+
+const findDate = (id:string | null):Patient| null=> {
+  for (const appointment of patients) {
+      if(appointment.id === id){
+        return appointment
+      }
+  }
+  return null
+}
+
+const editDate = (dateEdit: Patient):void => {
+  let {name , owener, phone , date, time , symptom} = dateEdit;
+  inputDate.value = date;
+  inputPetName.value = name;
+  inputPetOwener.value = owener;
+  inputPhoneNumber.value = phone;
+  inputSymptom.value = symptom;
+  inputTime.value = time;
+}
+
+
 
 
 const init = ():void => {
